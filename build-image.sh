@@ -108,10 +108,7 @@ function init_build_param()
 
     #create temp directory
     [ ! -d $RootfsPath ] && mkdir -p $RootfsPath
-}
 
-function init_image_env()
-{
     #install required packages
     local pkgName=$(dpkg-query -s qemu-system-x86 |grep install)
     [ -z "$pkgName" ] && apt-get install -y qemu-system-x86
@@ -121,7 +118,10 @@ function init_image_env()
     [ -z "$pkgName" ] && apt-get install -y gparted
     pkgName=$(dpkg-query -s cloud-image-utils |grep install)
     [ -z "$pkgName" ] && apt-get install -y cloud-image-utils
+}
 
+function init_image_env()
+{
     [ ! -f $ImageFile ] && exit_with_error "ubuntu preinstalled image is not exist. please download it"
 
     local loopdev=$(losetup -f)     #get available loop device
@@ -318,18 +318,19 @@ function handle_input_file()
     local fileName=$1
     [ ! -f $fileName ] && exit_with_error "file $fileName not exist. Please download it"
 
-    if [ "${fileName##*.}" == "xz" ]; then    #xz file, decompress it
+    local extension=${fileName##*.}
+    if [ "$extension" == "xz" ]; then    #xz file, decompress it
         local tempFile=${fileName%.*}         #remove . and right char
         xz -d -k $fileName
         [[ $? != 0 ]] && exit_with_error "failed to decompress $fileName"
         mv $tempFile $ImageFile
         BuildType=xz
-    elif [ "${fileName##*.}" == "img" ]; then #img file, no decompress
+    elif [ "$extension" == "img" ]; then #img file, no decompress
         if [ "$fileName" != "$ImageFile" ]; then
             cp $fileName $ImageFile
         fi
         BuildType=img
-    elif [ "${fileName##*.}" == "iso" ]; then #iso file, install image
+    elif [ "$extension" == "iso" ]; then #iso file, install image
         IsoFileName=$fileName
         BuildType=iso
     fi
@@ -402,7 +403,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         -r|--run)          #run installed image with qemu
-            kvm -no-reboot -m 2048 -drive file=$ImageFile,format=raw,cache=none,if=virtio
+            kvm -no-reboot -m 2048 -drive file=$ImageFile,format=raw,cache=none,if=virtio -k en-US
             shift
             ;;
         -ku|--kernel_local)
