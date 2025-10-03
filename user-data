@@ -28,6 +28,8 @@ autoinstall:
     - curl
     - wget
     - unzip
+    - net-tools
+    - nfs-common
   storage:
     config:
       - {ptable: gpt, path: /dev/vda, wipe: superblock,
