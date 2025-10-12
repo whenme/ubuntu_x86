@@ -13,18 +13,18 @@ ImageFile=ubuntu.img
 function help_usage()
 {
     echo "command guide:"
-    echo "  build-image.sh -f filename -a -b -u 1/0 -r -ku 5.17 -h"
+    echo "  build-image.sh -f filename -b -u -r 1/0 -k 5.17 -h"
     echo "    -f|--file:          preinstalled(.img.xz)/install(.iso)/image(.img) file"
     echo "    -b|--build:         build ubuntu image"
-    echo "    -ru|--rootfs_update: rootfs update manually. 1-mount rootfs, 0-umount rootfs"
-    echo "    -r|--run:            run image with qemu"
-    echo "    -ku|--kernel_update: update local kernel version"
+    echo "    -r|--rootfs_update: rootfs update manually. 1-mount rootfs, 0-umount rootfs"
+    echo "    -u|--run:            run image with qemu"
+    echo "    -k|--kernel_update: update local kernel version"
     echo "    -h|--help:          help"
     echo #empty line
     echo "modify parameters defined in param.json before run with root"
     echo "As gparted need GUI support, please run in ubuntu-desktop"
     echo "rootfs_update: update/configure rootfs manually with chroot. mounted rootfs path: temp/rootfs"
-    echo "recommanded disk size: server-5.5G(5500), desktop-15.7G(15700). modify it in param.json"
+    echo "recommanded disk size: server-5G(5000), desktop-15.7G(15700). modify it in param.json"
     echo "img.xz/iso file download path:"
     echo "    https://cdimage.ubuntu.com/ubuntu-server/jammy/daily-preinstalled/current"
     echo "    https://releases.ubuntu.com/24.04"
@@ -223,7 +223,7 @@ function update_kernel()
 
 function configure_os_image()
 {
-    local resizeFile=resize_partition_2204.sh
+    local resizeFile=resize_partition.sh
     if [ -f tool/$resizeFile ]; then
         cp tool/$resizeFile $RootfsPath/lib/modules
         chmod 777 $RootfsPath/lib/modules/$resizeFile
@@ -261,6 +261,7 @@ function configure_ubuntu()
     chroot_command "apt-get clean"
     chroot_command "apt-get install -y $ParamPackage"
     chroot_command "apt-get clean"
+    chroot_command "apt-get autoremove"
 
     echo "set root and default user with passwd ..."
     chroot_command "useradd -m -G audio,lp,cdrom -s /bin/bash $ParamDefaultUser"
@@ -319,7 +320,7 @@ function handle_input_file()
 
     local extension=${fileName##*.}
     if [ "$extension" == "xz" ]; then    #xz file, decompress it
-        local tempFile=${fileName%.*}         #remove . and right char
+        local tempFile=${fileName%.*}    #remove . and right char
         xz -d -k $fileName
         [[ $? != 0 ]] && exit_with_error "failed to decompress $fileName"
         mv $tempFile $ImageFile
@@ -387,7 +388,7 @@ while [[ $# -gt 0 ]]; do
             help_usage
             exit 0
             ;;
-        -ru|--rootfs_update) #update rootfs with chroot
+        -r|--rootfs_update) #update rootfs with chroot
             handle_rootfs $2
             shift 2
             ;;
@@ -395,11 +396,11 @@ while [[ $# -gt 0 ]]; do
             handle_input_file $2
             shift 2
             ;;
-        -r|--run)          #run installed image with qemu
+        -u|--run)          #run installed image with qemu
             kvm -no-reboot -m 2048 -drive file=$ImageFile,format=raw,cache=none,if=virtio -k en-US
             shift
             ;;
-        -ku|--kernel_update)
+        -k|--kernel_update)
             ParamKernelVersion=$2
             #update local kernel
             update_kernel 1

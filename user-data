@@ -29,7 +29,12 @@ autoinstall:
     - wget
     - unzip
     - net-tools
+    - network-manager
     - nfs-common
+    - gcc
+    - g++
+    - gdb
+    - cgdb
   storage:
     config:
       - {ptable: gpt, path: /dev/vda, wipe: superblock,

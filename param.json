@@ -17,10 +17,10 @@
     },
 
     "server": {
-        "package": "net-tools gcc g++ gdb cgdb cmake network-manager"
+        "package": "cmake"
     },
 
     "desktop": {
-        "package": "net-tools gcc g++ gdb cgdb jq cmake git network-manager"
+        "package": "jq cmake git"
     }
 }
