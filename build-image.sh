@@ -120,7 +120,7 @@ function init_build_param()
 
 function init_image_env()
 {
-    [ ! -f $ImageFile ] && exit_with_error "ubuntu preinstalled image is not exist. please download it"
+    [ ! -f $ImageFile ] && exit_with_error "ubuntu image is not exist. please download it"
 
     local loopdev=$(losetup -f)     #get available loop device
     [[ -z $loopdev ]] && exit_with_error "cannot found available loop device"
@@ -132,14 +132,21 @@ function init_image_env()
     sleep 1s
 
     #mount rootfs
-    if [ -a /dev/mapper/$(basename $loopdev)p2 ]; then
+    if [ -a /dev/mapper/$(basename $loopdev)p3 ]; then
         #installed image with 3 partitions. p3 for rootfs and p2 for efi
         mount -t ext4 /dev/mapper/$(basename $loopdev)p3 $RootfsPath
         mount -t vfat /dev/mapper/$(basename $loopdev)p2 $RootfsPath/boot/efi
     else
         #preinstalled image with 2 partitions
-        mount /dev/mapper/$(basename $loopdev)p1 $RootfsPath
-        mount /dev/mapper/$(basename $loopdev)p15 $RootfsPath/boot/efi
+        local mapdev=$(ls /dev/mapper | grep $(basename $loopdev) |grep p2)
+        if [[ "$mapdev" =~ "p2" ]]; then  #included p2
+            # it is /dev/loopx/p2 and p1
+            mount -t ext4 /dev/mapper/$(basename $loopdev)p2 $RootfsPath
+            mount -t vfat /dev/mapper/$(basename $loopdev)p1 $RootfsPath/boot/efi
+        else
+            mount -t ext4 /dev/mapper/$(basename $loopdev)p1 $RootfsPath
+            mount -t vfat /dev/mapper/$mapdev $RootfsPath/boot/efi
+        fi
     fi
 
     #for network issue, copy host resolv.conf to image. fix it when bug
@@ -325,7 +332,7 @@ function handle_input_file()
         [[ $? != 0 ]] && exit_with_error "failed to decompress $fileName"
         mv $tempFile $ImageFile
         BuildType=xz
-    elif [ "$extension" == "img" ]; then #img file, no decompress
+    elif [ "$extension" == "img" ] || [ "$extension" == "hdd" ]; then #img file, no decompress
         if [ "$fileName" != "$ImageFile" ]; then
             cp $fileName $ImageFile
         fi

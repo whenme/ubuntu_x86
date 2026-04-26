@@ -11,6 +11,8 @@ autoinstall:
     realname: ubuntu
     #password: 123. with 'openssl passwd -6 -stdin' to get password string
     password: "$6$.AUfut96JxGL/fEz$BBMXeczgJXs3v9bcOFLthGu275IFgyIZcPvzvRKscpc9G40olb.qa2Svaln.sn9iGWMuq/TQeb8nz2xB7dwJ51"
+  kernel:
+    package: linux-generic
   locale: en_US.UTF-8
   keyboard: {layout: us, toggle: null, variant: ''}
   network:
