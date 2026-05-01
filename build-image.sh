@@ -14,21 +14,27 @@ function help_usage()
 {
     echo "command guide:"
     echo "  build-image.sh -f filename -b -u -r 1/0 -k 5.17 -h"
-    echo "    -f|--file:          preinstalled(.img.xz)/install(.iso)/image(.img) file"
+    echo "    -f|--file:          preinstalled(.img.xz)/install(.iso)/image(.img, .hdd) file"
     echo "    -b|--build:         build ubuntu image"
     echo "    -r|--rootfs_update: rootfs update manually. 1-mount rootfs, 0-umount rootfs"
-    echo "    -u|--run:            run image with qemu"
+    echo "    -u|--run:           run image with qemu"
     echo "    -k|--kernel_update: update local kernel version"
     echo "    -h|--help:          help"
     echo #empty line
     echo "modify parameters defined in param.json before run with root"
     echo "As gparted need GUI support, please run in ubuntu-desktop"
-    echo "rootfs_update: update/configure rootfs manually with chroot. mounted rootfs path: temp/rootfs"
     echo "recommanded disk size: server-5G(5000), desktop-15.7G(15700). modify it in param.json"
     echo "img.xz/iso file download path:"
     echo "    https://cdimage.ubuntu.com/ubuntu-server/jammy/daily-preinstalled/current"
     echo "    https://releases.ubuntu.com/24.04"
     echo #empty line
+    echo "rootfs_update: update/configure rootfs manually with chroot. mounted rootfs path: temp/rootfs"
+    echo "  mount rootfs:            build-image.sh -f ubuntu.img -r 1"
+    echo "  chroot to target image:  chroot temp/rootfs"
+    echo "  All later commands will be in target image. Such as it can install package or update kernel."
+    echo "  exit chroot:             exit"
+    echo "  Then it will return to host system"
+    echo "  umount rootfs:           build-image.sh -f ubuntu.img -r 0"
 }
 
 function exit_with_error()
