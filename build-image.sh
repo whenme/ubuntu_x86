@@ -369,7 +369,8 @@ function install_iso_image()
     kvm -no-reboot -m 2048 \
         -drive file=$ImageFile,format=raw,cache=none,if=virtio \
         -drive file=$SeedFile,format=raw,cache=none,if=virtio \
-        -cdrom $IsoFileName
+        -cdrom $IsoFileName \
+        -netdev user,id=net0 -device virtio-net-pci,netdev=net0
 
     [ -f $MetaDataFile ] && rm -f $MetaDataFile
     [ -f $SeedFile ] && rm -f $SeedFile

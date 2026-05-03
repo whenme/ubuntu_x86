@@ -43,7 +43,7 @@ autoinstall:
          preserve: false, name: '', grub_device: true, type: disk, id: disk-sda}
       - {device: disk-sda, size: 1MB, flag: bios_grub, number: 1, preserve: false,
          grub_device: false, type: partition, id: partition-0}
-      - {device: disk-sda, size: 256MB, wipe: superblock, flag: '', number: 2,
+      - {device: disk-sda, size: 512MB, wipe: superblock, flag: '', number: 2,
          preserve: false, grub_device: false, type: partition, id: partition-1}
       - {fstype: fat32, volume: partition-1, preserve: false, type: format, id: format-0}
       - {device: disk-sda, size: -1, wipe: superblock, flag: '', number: 3,
