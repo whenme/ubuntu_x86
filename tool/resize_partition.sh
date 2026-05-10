@@ -21,7 +21,7 @@ if [ $bios_version == VirtualBox ]; then
   exit
 fi
 
-LOG_FILE=resize_partition.log
+LOG_FILE=/home/ubuntu/resize_partition.log
 UEFI_PATH=/sys/firmware/efi
 
 #rootfs disk. such as /dev/sda2 or /dev/nvme0n1p2 or /dev/md126p2
@@ -180,7 +180,7 @@ system_info()
 result_check()
 {
     echo "************************ execute result check ********************" >> $LOG_FILE
-    execute_cmd "sed -i "/resize_partition_2204.sh/d" /etc/rc.local"
+    execute_cmd "sed -i '/resize_partition_2204.sh/d' /etc/rc.local"
     echo "System new hard disk and memory info: " >> $LOG_FILE
     system_info
 }
