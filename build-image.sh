@@ -24,17 +24,16 @@ function help_usage()
     echo "modify parameters defined in param.json before run with root"
     echo "As gparted need GUI support, please run in ubuntu-desktop"
     echo "recommanded disk size: server-5G(5000), desktop-15.7G(15700). modify it in param.json"
-    echo "img.xz/iso file download path:"
-    echo "    https://cdimage.ubuntu.com/ubuntu-server/jammy/daily-preinstalled/current"
-    echo "    https://releases.ubuntu.com/24.04"
+    echo "iso file download path:  https://releases.ubuntu.com/24.04"
+    echo "The generated image file name is {hostname}.img. hostname is defined in param.json"
     echo #empty line
     echo "rootfs_update: update/configure rootfs manually with chroot. mounted rootfs path: temp/rootfs"
     echo "  mount rootfs:            build-image.sh -f ubuntu.img -r 1"
     echo "  chroot to target image:  chroot temp/rootfs"
-    echo "  All later commands will be in target image. Such as it can install package or update kernel."
+    echo "  All later commands will be in target image. Such as it can install package or update kernel"
     echo "  exit chroot:             exit"
     echo "  Then it will return to host system"
-    echo "  umount rootfs:           build-image.sh -f ubuntu.img -r 0"
+    echo "  umount rootfs:           build-image.sh -r 0"
 }
 
 function exit_with_error()
@@ -54,19 +53,19 @@ function chroot_command()
 function mount_running_system()
 {
     if [ $1 -ne 0 ]; then
-        echo "mount_running_system: mount..."
+        echo "mount_running_system: mount"
         mkdir -p $RootfsPath/proc $RootfsPath/sys $RootfsPath/dev/pts
         mount -t proc  /proc $RootfsPath/proc
         mount -t sysfs /sys  $RootfsPath/sys
         mount -o bind  /dev  $RootfsPath/dev
         mount -o bind  /dev/pts $RootfsPath/dev/pts
     else
-        echo "mount_running_system: umount..."
+        echo "mount_running_system: umount"
         if mountpoint -q $RootfsPath/proc; then
             umount $RootfsPath/proc
         fi
         if mountpoint -q $RootfsPath/sys; then
-            umount $RootfsPath/sys
+            umount -l $RootfsPath/sys
         fi
         if mountpoint -q $RootfsPath/dev/pts; then
             umount $RootfsPath/dev/pts
@@ -126,18 +125,19 @@ function init_build_param()
 
 function init_image_env()
 {
-    [ ! -f $ImageFile ] && exit_with_error "ubuntu image is not exist. please download it"
+    [ ! -f $ImageFile ] && exit_with_error "ubuntu image $ImageFile is not exist"
 
+    echo "losetup for loop device"
     local loopdev=$(losetup -f)     #get available loop device
     [[ -z $loopdev ]] && exit_with_error "cannot found available loop device"
     losetup $loopdev $ImageFile
 
-    #parse partition table
+    echo "parse partition table"
     kpartx -av $loopdev
     #waiting available
     sleep 1s
 
-    #mount rootfs
+    echo "mount rootfs"
     if [ -a /dev/mapper/$(basename $loopdev)p3 ]; then
         #installed image with 3 partitions. p3 for rootfs and p2 for efi
         mount -t ext4 /dev/mapper/$(basename $loopdev)p3 $RootfsPath
@@ -164,6 +164,8 @@ function init_image_env()
 
 function close_image_env()
 {
+    [ ! -f $ImageFile ] && exit_with_error "ubuntu image $ImageFile is not exist"
+
     #umount download path
     if mountpoint -q $RootfsPath/opt/download; then
         umount $RootfsPath/opt/download
@@ -171,10 +173,12 @@ function close_image_env()
     rm -rf $RootfsPath/opt/download
 
     mount_running_system 0
+
+    echo "umount rootfs"
     umount $RootfsPath/boot/efi
     umount $RootfsPath
 
-    #umount and remove loop device
+    echo "umount and remove loop device"
     #find loop device as it can be mounted manually
     local loopdev=$(losetup -l |grep $ImageFile | awk '{print $1}')
     if [ -n "$loopdev" ]; then
@@ -340,9 +344,10 @@ function handle_input_file()
         BuildType=xz
     elif [ "$extension" == "img" ] || [ "$extension" == "hdd" ]; then #img file, no decompress
         if [ "$fileName" != "$ImageFile" ]; then
-            cp $fileName $ImageFile
+            cp -f $fileName $ImageFile
         fi
         BuildType=img
+        echo "input file $fileName, image file $ImageFile"
     elif [ "$extension" == "iso" ]; then #iso file, install image
         IsoFileName=$fileName
         BuildType=iso

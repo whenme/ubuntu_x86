@@ -180,7 +180,7 @@ system_info()
 result_check()
 {
     echo "************************ execute result check ********************" >> $LOG_FILE
-    execute_cmd "sed -i '/resize_partition_2204.sh/d' /etc/rc.local"
+    execute_cmd "sed -i '/resize_partition.sh/d' /etc/rc.local"
     echo "System new hard disk and memory info: " >> $LOG_FILE
     system_info
 }
